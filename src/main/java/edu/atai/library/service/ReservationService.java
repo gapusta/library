@@ -46,6 +46,8 @@ public class ReservationService {
 
     @Transactional
     public Reservation queueReservation(Long userId, Long bookId) {
+        if (repository.findOpen(userId, bookId) != null) throw AppException.duplicate();
+
         LocalDateTime now = LocalDateTime.now();
 
         Book book = bookService.findById(bookId);

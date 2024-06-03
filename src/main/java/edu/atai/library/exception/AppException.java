@@ -25,4 +25,8 @@ public class AppException extends RuntimeException {
     public static AppException invalidQuantityOne() {
         return new AppException(AppExceptionCode.INVALID_QUANTITY_1, "Quantity cannot be smaller than reserved");
     }
+
+    public static AppException duplicate() {
+        return new AppException(AppExceptionCode.DUPLICATE, null);
+    }
 }

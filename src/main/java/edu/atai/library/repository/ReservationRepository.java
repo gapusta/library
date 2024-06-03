@@ -14,6 +14,15 @@ import java.util.Optional;
 @Repository
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
 
+    @Query("""
+         SELECT r.id FROM Reservation r
+         WHERE r.user.id = :userId AND
+            r.book.id = :bookId AND
+            r.returnedAt is NULL AND
+            r.canceledAt is NULL
+     """)
+    Long findOpen(@Param("userId") Long userId, @Param("bookId") Long bookId);
+
     @Query("SELECT r FROM Reservation r WHERE r.id != :prev AND r.book.id = :bookId ORDER BY r.createdAt ASC LIMIT 1")
     Optional<Reservation> findNextInQueue(@Param("prev") Long prev, @Param("bookId") Long bookId);
 
