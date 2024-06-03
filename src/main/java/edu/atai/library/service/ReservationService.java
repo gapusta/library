@@ -27,6 +27,9 @@ public class ReservationService {
 
     @Transactional(readOnly = true)
     public Page<ReservationView> findAll(SearchRequest request, Pageable pageable) {
+        if (request.getUserId() != null)
+            return repository.findReservationsByUserId(request.getUserId(), pageable);
+
         if (request.getUserName() != null)
             return repository.findReservationByUserName(request.getUserName(), pageable);
 

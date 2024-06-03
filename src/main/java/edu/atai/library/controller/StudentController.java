@@ -42,10 +42,10 @@ public class StudentController {
 
     @GetMapping("/reservation")
     public Page<ReservationView> findReservations(
-        Principal principal,
+        Authentication authentication,
         @SortDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        User student = (User) principal;
+        User student = (User) authentication.getPrincipal();
         return reservationService.findByUserId(student.getId(), pageable);
     }
 

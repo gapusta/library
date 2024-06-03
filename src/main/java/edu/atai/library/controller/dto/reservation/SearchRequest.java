@@ -7,6 +7,7 @@ import lombok.Setter;
 @Setter
 public class SearchRequest {
 
+    private Long userId;
     private String userName;
     private String bookTitle;
 
