@@ -1,6 +1,5 @@
 package edu.atai.library.exception;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -19,11 +18,11 @@ public class AppException extends RuntimeException {
         return new AppException(AppExceptionCode.NOT_FOUND, "Not found");
     }
 
-    public static AppException invalidDueDate() {
+    public static AppException invalidDueDateOne() {
         return new AppException(AppExceptionCode.INVALID_DUE_DATE_1, "Due date cannot be before book taken date");
     }
 
-    public static AppException invalidQuantity() {
+    public static AppException invalidQuantityOne() {
         return new AppException(AppExceptionCode.INVALID_QUANTITY_1, "Quantity cannot be smaller than reserved");
     }
 }

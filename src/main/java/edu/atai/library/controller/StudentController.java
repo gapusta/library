@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.SortDefault;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -50,10 +51,10 @@ public class StudentController {
 
     @PostMapping("/reservation")
     public CreateResponse createReservation(
-        Principal principal,
+        Authentication authentication,
         @RequestBody @Valid CreateRequest request
     ) {
-        User student = (User) principal;
+        User student = (User) authentication.getPrincipal();
         Reservation result = reservationService.queueReservation(student.getId(), request.getBookId());
         return new CreateResponse(result);
     }

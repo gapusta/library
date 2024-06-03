@@ -13,6 +13,7 @@ public class BookDto {
     private final String author;
     private final Integer quantity;
     private final Integer reserved;
+    private final Boolean visible;
 
     public BookDto(Book book) {
         this.id = book.getId();
@@ -20,6 +21,7 @@ public class BookDto {
         this.author = book.getAuthor();
         this.quantity = book.getQuantity();
         this.reserved = book.getReserved();
+        this.visible = book.getVisible();
     }
 
 }

@@ -43,7 +43,7 @@ public class BookService {
     public void update(Long id, UpdateRequest request) {
         Book book = repository.findById(id).orElseThrow(AppException::notFound);
 
-        if (request.getQuantity() < book.getReserved()) throw AppException.invalidQuantity();
+        if (request.getQuantity() < book.getReserved()) throw AppException.invalidQuantityOne();
 
         book.setTitle(request.getTitle());
         book.setAuthor(request.getAuthor());

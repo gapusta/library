@@ -46,6 +46,9 @@ public class ReservationService {
         LocalDateTime now = LocalDateTime.now();
 
         Book book = bookService.findById(bookId);
+
+        if (!book.getVisible()) throw AppException.notFound();
+
         User user = userService.findById(userId);
 
         Reservation reservation = new Reservation();
@@ -68,7 +71,7 @@ public class ReservationService {
 
         reservation.setCanceledAt(LocalDateTime.now());
 
-        reserveNext(reservation.getBook().getId());
+        reserveNext(reservation.getId(), reservation.getBook().getId());
     }
 
     @Transactional
@@ -91,7 +94,7 @@ public class ReservationService {
 
         reservation.setReturnedAt(LocalDateTime.now());
 
-        reserveNext(reservation.getBook().getId());
+        reserveNext(reservation.getId(), reservation.getBook().getId());
     }
 
     @Transactional
@@ -100,14 +103,14 @@ public class ReservationService {
         LocalDateTime takenAt = reservation.getTakenAt();
 
         if (takenAt != null && newDue.isBefore(takenAt)) {
-            throw AppException.invalidDueDate();
+            throw AppException.invalidDueDateOne();
         }
 
         reservation.setDueDate(newDue);
     }
 
-    private void reserveNext(Long bookId) {
-        Optional<Reservation> next = repository.findNextInQueue(bookId);
+    private void reserveNext(Long prev, Long bookId) {
+        Optional<Reservation> next = repository.findNextInQueue(prev, bookId);
 
         if (next.isPresent()) {
             next.get().setReservedAt(LocalDateTime.now());
