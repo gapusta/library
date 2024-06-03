@@ -1,4 +1,4 @@
-package edu.atai.library.controllers.dto;
+package edu.atai.library.controller.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

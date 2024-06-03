@@ -1,4 +1,4 @@
-package edu.atai.library.controllers.dto.book;
+package edu.atai.library.controller.dto.book;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -9,6 +9,6 @@ public class SearchRequest {
 
     private Long bookId;
 
-    private String name;
+    private String bookTitle;
 
 }

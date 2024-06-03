@@ -11,12 +11,13 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
 
     @Query("SELECT r FROM Reservation r WHERE r.book.id = :bookId ORDER BY r.createdAt ASC LIMIT 1")
-    Reservation findNextInQueue(@Param("bookId") Long bookId);
+    Optional<Reservation> findNextInQueue(@Param("bookId") Long bookId);
 
 
     @Query("""

@@ -1,8 +1,9 @@
 package edu.atai.library.service;
 
-import edu.atai.library.controllers.dto.book.CreateRequest;
-import edu.atai.library.controllers.dto.book.SearchRequest;
-import edu.atai.library.controllers.dto.book.UpdateRequest;
+import edu.atai.library.controller.dto.book.CreateRequest;
+import edu.atai.library.controller.dto.book.SearchRequest;
+import edu.atai.library.controller.dto.book.UpdateRequest;
+import edu.atai.library.exception.AppException;
 import edu.atai.library.model.Book;
 import edu.atai.library.repository.BookRepository;
 import org.springframework.data.domain.Page;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -29,7 +31,6 @@ public class BookService {
             request.getTitle(),
             request.getAuthor(),
             request.getQuantity(),
-            request.getQuantity(),
             false
         );
 
@@ -40,7 +41,9 @@ public class BookService {
 
     @Transactional
     public void update(Long id, UpdateRequest request) {
-        Book book = repository.findById(id).get();
+        Book book = repository.findById(id).orElseThrow(AppException::notFound);
+
+        if (request.getQuantity() < book.getReserved()) throw AppException.invalidQuantity();
 
         book.setTitle(request.getTitle());
         book.setAuthor(request.getAuthor());
@@ -49,14 +52,15 @@ public class BookService {
         repository.save(book);
     }
 
+    @Transactional(readOnly = true)
     public Book findById(Long id) {
-        return repository.findById(id).get();
+        return repository.findById(id).orElseThrow(AppException::notFound);
     }
 
     @Transactional(readOnly = true)
     public Page<Book> findAllVisible(SearchRequest request, Pageable pageable) {
-        if (request.getName() != null) {
-            return repository.findAllVisibleByTitlePart(request.getName(), pageable);
+        if (request.getBookTitle() != null) {
+            return repository.findAllVisibleByTitlePart(request.getBookTitle(), pageable);
         }
 
         return repository.findAllVisible(pageable);
@@ -68,8 +72,8 @@ public class BookService {
             return new PageImpl<>(repository.findAllById(List.of(request.getBookId())));
         }
 
-        if (request.getName() != null) {
-            return repository.findAllByTitlePart(request.getName(), pageable);
+        if (request.getBookTitle() != null) {
+            return repository.findAllByTitlePart(request.getBookTitle(), pageable);
         }
 
         return repository.findAll(pageable);
@@ -87,20 +91,21 @@ public class BookService {
 
     @Transactional
     public Boolean reserve(Long id) {
-        Book book = repository.findById(id).get();
-        Integer available = book.getAvailable();
+        Book book = repository.findById(id).orElseThrow(AppException::notFound);
 
-        if(available <= 0) return false;
+        if (Objects.equals(book.getQuantity(), book.getReserved())) return false;
 
-        book.setAvailable(available - 1);
+        book.setReserved(book.getReserved() + 1);
         return true;
     }
 
     @Transactional
     public void setAvailable(Long id) {
-        Book book = repository.findById(id).get();
+        Book book = repository.findById(id).orElseThrow(AppException::notFound);
 
-        book.setAvailable(book.getAvailable() + 1);
+        if (book.getReserved() == 0) return;
+
+        book.setReserved(book.getReserved() - 1);
     }
 
 }

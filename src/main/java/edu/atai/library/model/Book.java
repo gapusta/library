@@ -27,16 +27,16 @@ public class Book {
     private Integer quantity;
 
     @Column(nullable = false)
-    private Integer available;
+    private Integer reserved;
 
     @Column(nullable = false)
     private Boolean visible;
 
-    public Book(String title, String author, Integer quantity, Integer available, Boolean visible) {
+    public Book(String title, String author, Integer quantity, Boolean visible) {
         this.title = title;
         this.author = author;
         this.quantity = quantity;
-        this.available = available;
+        this.reserved = 0;
         this.visible = visible;
     }
 }

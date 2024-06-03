@@ -1,4 +1,4 @@
-package edu.atai.library.controllers.dto.book;
+package edu.atai.library.controller.dto.book;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

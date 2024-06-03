@@ -1,6 +1,8 @@
 package edu.atai.library.service;
 
-import edu.atai.library.controllers.dto.reservation.SearchReservationsRequest;
+import edu.atai.library.controller.dto.reservation.SearchRequest;
+import edu.atai.library.controller.dto.reservation.SetTakenRequest;
+import edu.atai.library.exception.AppException;
 import edu.atai.library.model.Book;
 import edu.atai.library.model.Reservation;
 import edu.atai.library.model.User;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +26,7 @@ public class ReservationService {
     private final UserService userService;
 
     @Transactional(readOnly = true)
-    public Page<ReservationView> findAll(SearchReservationsRequest request, Pageable pageable) {
+    public Page<ReservationView> findAll(SearchRequest request, Pageable pageable) {
         if (request.getUserName() != null)
             return repository.findReservationByUserName(request.getUserName(), pageable);
 
@@ -39,7 +42,7 @@ public class ReservationService {
     }
 
     @Transactional
-    public Reservation reserve(Long userId, Long bookId) {
+    public Reservation queueReservation(Long userId, Long bookId) {
         LocalDateTime now = LocalDateTime.now();
 
         Book book = bookService.findById(bookId);
@@ -58,36 +61,58 @@ public class ReservationService {
     }
 
     @Transactional
-    public void updateStatus(Long id, String newStatus) {
-        Reservation current = repository.findById(id).get();
+    public void cancel(Long id) {
+        Reservation reservation = repository.findById(id).orElseThrow(AppException::notFound);
 
-        if ("CANCELED".equals(newStatus) && current.getTakenAt() == null) {
-            current.setCanceledAt(LocalDateTime.now());
-            return;
-        }
+        if (reservation.getTakenAt() != null) return;
 
-        if ("TAKEN".equals(newStatus)) {
-            current.setTakenAt(LocalDateTime.now());
-            return;
-        }
+        reservation.setCanceledAt(LocalDateTime.now());
 
-        if ("RETURNED".equals(newStatus)) {
-            current.setReturnedAt(LocalDateTime.now());
-        }
+        reserveNext(reservation.getBook().getId());
+    }
 
-        Reservation next = repository.findNextInQueue(current.getBook().getId());
+    @Transactional
+    public void setTaken(Long id, SetTakenRequest request) {
+        Reservation reservation = repository.findById(id).orElseThrow(AppException::notFound);
 
-        if (next != null) {
-            next.setReservedAt(LocalDateTime.now());
-        } else {
-            bookService.setAvailable(current.getBook().getId());
-        }
+        if (reservation.getReservedAt() == null) return;
+        if (reservation.getCanceledAt() != null) return;
+
+        reservation.setTakenAt(LocalDateTime.now());
+        reservation.setDueDate(request.getDue());
+    }
+
+    @Transactional
+    public void setSuccessfulFinish(Long id) {
+        Reservation reservation = repository.findById(id).orElseThrow(AppException::notFound);
+
+        if (reservation.getTakenAt() == null) return;
+        if (reservation.getCanceledAt() != null) return;
+
+        reservation.setReturnedAt(LocalDateTime.now());
+
+        reserveNext(reservation.getBook().getId());
     }
 
     @Transactional
     public void changeDueDate(Long id, LocalDateTime newDue) {
-        Reservation current = repository.findById(id).get();
-        current.setDueDate(newDue);
+        Reservation reservation = repository.findById(id).orElseThrow(AppException::notFound);
+        LocalDateTime takenAt = reservation.getTakenAt();
+
+        if (takenAt != null && newDue.isBefore(takenAt)) {
+            throw AppException.invalidDueDate();
+        }
+
+        reservation.setDueDate(newDue);
     }
 
+    private void reserveNext(Long bookId) {
+        Optional<Reservation> next = repository.findNextInQueue(bookId);
+
+        if (next.isPresent()) {
+            next.get().setReservedAt(LocalDateTime.now());
+        } else {
+            bookService.setAvailable(bookId);
+        }
+    }
 }
