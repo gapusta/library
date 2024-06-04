@@ -23,8 +23,15 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
      """)
     Long findOpen(@Param("userId") Long userId, @Param("bookId") Long bookId);
 
-    @Query("SELECT r FROM Reservation r WHERE r.id != :prev AND r.book.id = :bookId ORDER BY r.createdAt ASC LIMIT 1")
-    Optional<Reservation> findNextInQueue(@Param("prev") Long prev, @Param("bookId") Long bookId);
+    @Query("""
+        SELECT r FROM Reservation r
+        WHERE r.id != :prev AND
+        r.book.id = :bookId AND
+        r.returnedAt IS NULL AND
+        r.canceledAt IS NULL
+        ORDER BY r.createdAt ASC LIMIT 1
+    """)
+    Optional<Reservation> findNextWaiting(@Param("prev") Long prev, @Param("bookId") Long bookId);
 
     @Query("""
         SELECT

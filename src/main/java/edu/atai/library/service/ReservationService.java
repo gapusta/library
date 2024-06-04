@@ -115,7 +115,7 @@ public class ReservationService {
     }
 
     private void reserveNext(Long prev, Long bookId) {
-        Optional<Reservation> next = repository.findNextInQueue(prev, bookId);
+        Optional<Reservation> next = repository.findNextWaiting(prev, bookId);
 
         if (next.isPresent()) {
             next.get().setReservedAt(LocalDateTime.now());
